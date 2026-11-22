@@ -27,9 +27,11 @@ except ImportError:
     redis = None
 
 try:
+    from sqlalchemy import text as sqlalchemy_text
     from sqlalchemy.ext.asyncio import create_async_engine
 except ImportError:
     create_async_engine = None
+    sqlalchemy_text = None
 
 from .schemas import HealthResponse
 
@@ -194,7 +196,7 @@ def create_app() -> FastAPI:
         if AppState.postgres_engine:
             try:
                 async with AppState.postgres_engine.connect() as conn:
-                    await conn.execute("SELECT 1")
+                    await conn.execute(sqlalchemy_text("SELECT 1"))
             except Exception as e:
                 logger.warning(f"PostgreSQL health check failed: {e}")
                 components["postgres"] = "degraded"
