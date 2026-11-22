@@ -25,6 +25,7 @@ The 300-900 range maps to standard credit risk buckets:
 """
 
 import logging
+import math
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -133,8 +134,13 @@ class AxiomEnsemble:
             AxiomScore object with final score and metadata
 
         Raises:
+            ValueError: If any component score is not finite
             AssertionError: If final score outside [300, 900] range (safeguard)
         """
+        # Reject NaN and infinity before clamping, so invalid values fail clearly.
+        if not all(math.isfinite(score) for score in (s_b, s_t, r_f)):
+            raise ValueError("Component scores must be finite numbers")
+
         # Clamp all inputs to [0, 1]
         s_b = max(0.0, min(s_b, 1.0))
         s_t = max(0.0, min(s_t, 1.0))
